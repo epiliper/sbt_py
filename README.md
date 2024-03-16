@@ -26,6 +26,9 @@ See example.csv for required column names.
 * additional submission comment 1
 * additional submission comment 2
 
+
+*More columns will eventually be added; feel free to make a request*
+
 ### To run 
 
 `python3 sbt_gen.py <name of .csv file> <name of sbt to be generated>`
