@@ -67,8 +67,15 @@ def generate_sbt(csv_loc, name_of_sbt):
     df = pd.read_csv(path.abspath(csv_loc))
     name_of_sbt = name_of_sbt
 
+    ### make sure name given is valid
+    
+    if len(name_of_sbt) = 0:
+        name_of_sbt = 'generated.sbt'
+
     if '.sbt' not in name_of_sbt: 
         name_of_sbt = name_of_sbt + '.sbt'
+
+
 
     ### get information needed only for the .sbt (e.g. not strain, collection, etc.)
     sbt_info = df[['authors', 
