@@ -69,7 +69,7 @@ def generate_sbt(csv_loc, name_of_sbt):
 
     ### make sure name given is valid
     
-    if len(name_of_sbt) = 0:
+    if len(name_of_sbt) == 0:
         name_of_sbt = 'generated.sbt'
 
     if '.sbt' not in name_of_sbt: 
