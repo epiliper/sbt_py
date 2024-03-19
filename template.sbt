@@ -4,7 +4,7 @@ Submit-block ::= {
       name name {
         last "afil_last",
         first "afil_first",
-        middle "",
+        middle "afil_middle",
         initials "",
         suffix "",
         title ""

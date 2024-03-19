@@ -13,8 +13,7 @@ parser.add_argument(
         help = 'location of metadata.csv for .sqn generation'
         )
 
-parser.add_argument(
-        'name_of_sbt',
+parser.add_argument( 'name_of_sbt',
         help = 'name of .sbt to be generated'
         )
 
@@ -95,13 +94,15 @@ def generate_sbt(csv_loc, name_of_sbt):
 
     sbt_info = sbt_info.astype('string')
     
-    authors_last = []
-    authors_first = []
-    authors_middle = []
 
     num_of_sbts = 0
 
     for row in sbt_info.to_dict('records'):
+
+        authors_last = []
+        authors_first = []
+        authors_middle = []
+        
         try: 
             ### if author entry has middle name:
             for author in row['authors'].split(', '):
@@ -147,7 +148,7 @@ def generate_sbt(csv_loc, name_of_sbt):
         else: 
             overwrite_response = input("File already exists. Type yes to overwrite, no to cancel. ").upper()
             if overwrite_response not in ['YES', 'Y', 'NO', 'N']:
-                overwrite_response = input("Invalid input. Type yes to overwrite, no to cancel. ")
+                overwrite_response = input("Invalid input. Type yes to overwrite, no to cancel. ").upper()
             elif overwrite_response in ['YES', 'Y']:
                 print('Overwriting...')
                 copy('template.sbt', filename)
@@ -178,7 +179,7 @@ def generate_sbt(csv_loc, name_of_sbt):
 
                 block_to_insert = block_to_insert.replace("},", "}")
 
-            content.insert(16, block_to_insert)
+            content.insert(16+num_blocks, block_to_insert)
             num_blocks += 1
 
         content.insert(11, afil_populated)
@@ -193,6 +194,7 @@ def generate_sbt(csv_loc, name_of_sbt):
             else:
                 content[4] = content[4].replace("afil_last", row['afil_name'].split(' ')[1])
                 content[5] = content[5].replace("afil_first", row['afil_name'].split(' ')[0])
+                content[6] = content[6].replace("afil_middle", ' ')
 
         except IndexError:
             print("ERROR: Affiliated author is missing name/surname. Reenter data and run again.")
