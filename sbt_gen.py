@@ -135,8 +135,25 @@ def generate_sbt(csv_loc, name_of_sbt):
 
         num_of_sbts += 1
 
-        copy('template.sbt', filename)
 
+        ### check if sbt with matching filename has already been generated. 
+        ### prompt user if they want to overwrite
+
+        if not path.exists(filename):
+
+            copy('template.sbt', filename)
+
+        else: 
+            overwrite_response = input("File already exists. Type yes to overwrite, no to cancel. ").upper()
+            if overwrite_response not in ['YES', 'Y', 'NO', 'N']:
+                overwrite_response = input("Invalid input. Type yes to overwrite, no to cancel. ")
+            elif overwrite_response in ['YES', 'Y']:
+                print('Overwriting...')
+                copy('template.sbt', filename)
+            elif overwrite_response in ['NO', 'N']:
+                print("Aborting...")
+                sys.exit(0)
+                
         print(f"Number of sbts generated: {num_of_sbts}")
 
         # generate a copy of the template .sbt
