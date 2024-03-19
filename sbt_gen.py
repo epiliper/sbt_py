@@ -131,7 +131,7 @@ def generate_sbt(csv_loc, name_of_sbt):
         filename = name_of_sbt
 
         if num_of_sbts != 0:
-            filename = name_of_sbt + str(num_of_sbts)
+            filename = name_of_sbt.split('.sbt')[0] + str(num_of_sbts) + '.sbt'
 
         num_of_sbts += 1
 
