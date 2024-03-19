@@ -104,12 +104,20 @@ def generate_sbt(csv_loc, name_of_sbt):
         authors_middle = []
         
         try: 
+            if len(row['authors']) == 1:
+                ### if only a single author is listed
+                if len(row['authors'].split(' ')==3):
+                    authors_middle.append(row['authors'].split(' ')[1])
+                    authors_last.append(row['authors'].split(' ')[2])
+                    authors_first.append(row['authors'].split(' ')[0])
+
             ### if author entry has middle name:
             for author in row['authors'].split(', '):
                 if len(author.split(' ')) == 3:
                     authors_middle.append(author.split(' ')[1])
                     authors_last.append(author.split(' ')[2])
                     authors_first.append(author.split(' ')[0])
+
                 ### if no middle name then just use space
                 else:
                     authors_middle.append(' ')
