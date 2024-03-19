@@ -12,7 +12,7 @@ See example.csv for required column names.
 #### Author name formatting:
 
 All names should be formatted as: 
-<first name> space <middle name (if supplied)> space <last name>,
+**first name** space **middle name (if supplied)** space **last name**,
 
 Note separating each name by comma. 
 
