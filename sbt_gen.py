@@ -7,7 +7,7 @@ import sys
 ### define args
 
 parser = argparse.ArgumentParser(
-        description = "Parses .csv files to create .sbt files for table2asn sequence record generation")
+        description = "Parses .csv files to create .sbt files for table2asn sequence record generation") 
 
 parser.add_argument(
         'csv_loc',
@@ -75,10 +75,11 @@ def generate_sbt(csv_loc, name_of_sbt):
     if '.sbt' not in name_of_sbt: 
         name_of_sbt = name_of_sbt + '.sbt'
 
-    ### get information needed only for the .sbt (e.g. not strain, collection, etc.)
-    sbt_info = df[['authors', 
+
+    cols_list = ['authors', 
                    'afil_name',
-                   'afil_dept', "afil_div",
+                   'afil_dept', 
+                   'afil_div',
                    'afil_city',
                    'afil_sub', 
                    'afil_country',
@@ -86,7 +87,11 @@ def generate_sbt(csv_loc, name_of_sbt):
                    'afil_email',
                    'afil_postcode',
                    'alt_comment1',
-                   'alt_comment2']]
+                   'alt_comment2']
+
+    ### get information needed only for the .sbt (e.g. not strain, collection, etc.)
+    sbt_info = df[cols_list]
+
 
     ### remove duplicate entries from .sbt metadata to not generate a mess of dupe .sbt's 
     sbt_info = sbt_info.drop_duplicates()
@@ -97,20 +102,46 @@ def generate_sbt(csv_loc, name_of_sbt):
     num_of_sbts = 0
 
     for row in sbt_info.itertuples():
-        [authors_last.append(last.split(' ')[1]) for last in row.authors.split(', ')]
-        [authors_first.append(first.split(' ')[0]) for first in row.authors.split(', ')]
+        try: 
+
+            [authors_last.append(last.split(' ')[1]) for last in row.authors.split(', ')]
+            [authors_first.append(first.split(' ')[0]) for first in row.authors.split(', ')]
+
+        except IndexError:
+            print("ERROR: Author in 'authors' column is missing surname/middlename. Verify data and run again.")
+            sys.exit(0)
 
         ### fill in affiliations
-        afil_populated = afil_frame
+        try:
+            afil_populated = afil_frame
+            
+            afil_populated = afil_populated.replace("_dept_", row.afil_dept)
+            current_col = 'afil_dept'
 
-        afil_populated = afil_populated.replace("_dept_", row.afil_dept)
-        afil_populated = afil_populated.replace("_division_", row.afil_div)
-        afil_populated = afil_populated.replace("_city_", row.afil_city)
-        afil_populated = afil_populated.replace("_sub-country_", row.afil_sub)
-        afil_populated = afil_populated.replace("_country_", row.afil_country)
-        afil_populated = afil_populated.replace("_street_", row.afil_street)
-        afil_populated = afil_populated.replace("_post_code_", str(row.afil_postcode))
-        afil_populated = afil_populated.replace("_afil_email_", str(row.afil_email))
+            afil_populated = afil_populated.replace("_division_", row.afil_div)
+            current_col = 'afil_div'
+
+            afil_populated = afil_populated.replace("_city_", row.afil_city)
+            current_col = 'afil_city'
+
+            afil_populated = afil_populated.replace("_sub-country_", row.afil_sub)
+            current_col = 'afil_sub'
+
+            afil_populated = afil_populated.replace("_country_", row.afil_country)
+            current_col = 'afil_sub'
+
+            afil_populated = afil_populated.replace("_street_", row.afil_street)
+            current_col = 'afil_sub'
+
+            afil_populated = afil_populated.replace("_post_code_", str(row.afil_postcode))
+            current_col = 'afil_postcode'
+
+            afil_populated = afil_populated.replace("_afil_email_", str(row.afil_email))
+            current_col = 'afil_email'
+
+        except TypeError:
+            print(f"ERROR: missing data in required column: {current_col}. Enter placeholder value and run again.")
+            sys.exit(0)
 
         ### generate dynamic filenames for more than 1 sbt
 
