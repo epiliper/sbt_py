@@ -75,8 +75,6 @@ def generate_sbt(csv_loc, name_of_sbt):
     if '.sbt' not in name_of_sbt: 
         name_of_sbt = name_of_sbt + '.sbt'
 
-
-
     ### get information needed only for the .sbt (e.g. not strain, collection, etc.)
     sbt_info = df[['authors', 
                    'afil_name',
@@ -96,6 +94,8 @@ def generate_sbt(csv_loc, name_of_sbt):
     authors_last = []
     authors_first = []
 
+    num_of_sbts = 0
+
     for row in sbt_info.itertuples():
         [authors_last.append(last.split(' ')[1]) for last in row.authors.split(', ')]
         [authors_first.append(first.split(' ')[0]) for first in row.authors.split(', ')]
@@ -112,13 +112,24 @@ def generate_sbt(csv_loc, name_of_sbt):
         afil_populated = afil_populated.replace("_post_code_", str(row.afil_postcode))
         afil_populated = afil_populated.replace("_afil_email_", str(row.afil_email))
 
-        copy('template.sbt', name_of_sbt)
+        ### generate dynamic filenames for more than 1 sbt
+
+        filename = name_of_sbt
+
+        if num_of_sbts != 0:
+            filename = name_of_sbt + str(num_of_sbts)
+
+        num_of_sbts += 1
+
+        copy('template.sbt', filename)
+
+        print(f"Number of sbts generated: {num_of_sbts}")
 
         # generate a copy of the template .sbt
         # populate it with author names, and corresponding author affiliation/contact info
 
         num_blocks = 0
-        with open(name_of_sbt, 'r+') as sbt:
+        with open(filename, 'r+') as sbt:
             content = sbt.readlines() 
 
         for last, first in zip(authors_last, authors_first):
@@ -144,7 +155,7 @@ def generate_sbt(csv_loc, name_of_sbt):
         content[4] = content[4].replace("afil_last", row.afil_name.split(' ')[1])
         content[5] = content[5].replace("afil_first", row.afil_name.split(' ')[0])
 
-        with open(name_of_sbt, 'w+') as sbt: 
+        with open(filename, 'w+') as sbt: 
             sbt.writelines(content)
 
             if row.alt_comment1 != '':
@@ -155,12 +166,5 @@ def generate_sbt(csv_loc, name_of_sbt):
                 alt2_populated = comment_frame.replace('_alt_comment_', row.alt_comment2)
                 sbt.write(alt2_populated)
 
-
 generate_sbt(args.csv_loc, args.name_of_sbt)
-
-
-
-
-
-
 
