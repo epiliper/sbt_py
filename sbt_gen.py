@@ -40,14 +40,14 @@ name_frame = """        {
 """
 
 afil_frame = """      affil std {
-        affil "_dept_",
-        div "_division_",
-        city "_city_",
-        sub "_sub-country_",
-        country "_country_",
-        street "_street_",
-        email "_afil_email_",
-        postal-code "_post_code_"
+        affil "afil_dept",
+        div "afil_div",
+        city "afil_city",
+        sub "afil_sub",
+        country "afil_country",
+        street "afil_street",
+        email "afil_email",
+        postal-code "afil_postcode"
       }
 """
 
@@ -76,36 +76,40 @@ def generate_sbt(csv_loc, name_of_sbt):
         name_of_sbt = name_of_sbt + '.sbt'
 
 
-    cols_list = ['authors', 
-                   'afil_name',
-                   'afil_dept', 
-                   'afil_div',
-                   'afil_city',
-                   'afil_sub', 
-                   'afil_country',
-                   'afil_street',
-                   'afil_email',
-                   'afil_postcode',
-                   'alt_comment1',
-                   'alt_comment2']
+    all_cols = ['authors', 
+               'afil_name',
+               'afil_dept', 
+               'afil_div',
+               'afil_city',
+               'afil_sub', 
+               'afil_country',
+               'afil_street',
+               'afil_email',
+               'afil_postcode',
+               'alt_comment1',
+               'alt_comment2']
+
+    afil_cols = all_cols[2:]
 
     ### get information needed only for the .sbt (e.g. not strain, collection, etc.)
-    sbt_info = df[cols_list]
-
+    sbt_info = df[all_cols]
 
     ### remove duplicate entries from .sbt metadata to not generate a mess of dupe .sbt's 
     sbt_info = sbt_info.drop_duplicates()
+
+    sbt_info = sbt_info.astype('string')
     
     authors_last = []
     authors_first = []
 
     num_of_sbts = 0
 
-    for row in sbt_info.itertuples():
+    # for row in sbt_info.itertuples():
+    for row in sbt_info.to_dict('records'):
         try: 
 
-            [authors_last.append(last.split(' ')[1]) for last in row.authors.split(', ')]
-            [authors_first.append(first.split(' ')[0]) for first in row.authors.split(', ')]
+            [authors_last.append(last.split(' ')[1]) for last in row['authors'].split(', ')]
+            [authors_first.append(first.split(' ')[0]) for first in row['authors'].split(', ')]
 
         except IndexError:
             print("ERROR: Author in 'authors' column is missing surname/middlename. Verify data and run again.")
@@ -114,33 +118,12 @@ def generate_sbt(csv_loc, name_of_sbt):
         ### fill in affiliations
         try:
             afil_populated = afil_frame
+
+            for col in afil_cols:
+                afil_populated = afil_populated.replace(col, row[col])
             
-            afil_populated = afil_populated.replace("_dept_", row.afil_dept)
-            current_col = 'afil_dept'
-
-            afil_populated = afil_populated.replace("_division_", row.afil_div)
-            current_col = 'afil_div'
-
-            afil_populated = afil_populated.replace("_city_", row.afil_city)
-            current_col = 'afil_city'
-
-            afil_populated = afil_populated.replace("_sub-country_", row.afil_sub)
-            current_col = 'afil_sub'
-
-            afil_populated = afil_populated.replace("_country_", row.afil_country)
-            current_col = 'afil_sub'
-
-            afil_populated = afil_populated.replace("_street_", row.afil_street)
-            current_col = 'afil_sub'
-
-            afil_populated = afil_populated.replace("_post_code_", str(row.afil_postcode))
-            current_col = 'afil_postcode'
-
-            afil_populated = afil_populated.replace("_afil_email_", str(row.afil_email))
-            current_col = 'afil_email'
-
         except TypeError:
-            print(f"ERROR: missing data in required column: {current_col}. Enter placeholder value and run again.")
+            print(f"ERROR: missing data in required column: {col}. Enter placeholder value and run again.")
             sys.exit(0)
 
         ### generate dynamic filenames for more than 1 sbt
@@ -183,18 +166,24 @@ def generate_sbt(csv_loc, name_of_sbt):
         content.insert(11, afil_populated)
         content.insert(18 + num_blocks, afil_populated)
 
-        content[4] = content[4].replace("afil_last", row.afil_name.split(' ')[1])
-        content[5] = content[5].replace("afil_first", row.afil_name.split(' ')[0])
+        try:
+
+            content[4] = content[4].replace("afil_last", row['afil_name'].split(' ')[1])
+            content[5] = content[5].replace("afil_first", row['afil_name'].split(' ')[0])
+
+        except IndexError:
+            print("ERROR: Affiliated author is missing name/surname. Reenter data and run again.")
+            sys.exit(0)
 
         with open(filename, 'w+') as sbt: 
             sbt.writelines(content)
 
-            if row.alt_comment1 != '':
-                alt1_populated = comment_frame.replace('_alt_comment_', row.alt_comment1)
+            if row['alt_comment1']!= '':
+                alt1_populated = comment_frame.replace('_alt_comment_', row['alt_comment1'])
                 sbt.write(alt1_populated)
 
-            if row.alt_comment2 != '':
-                alt2_populated = comment_frame.replace('_alt_comment_', row.alt_comment2)
+            if row['alt_comment2']!= '':
+                alt2_populated = comment_frame.replace('_alt_comment_', row['alt_comment2'])
                 sbt.write(alt2_populated)
 
 generate_sbt(args.csv_loc, args.name_of_sbt)
