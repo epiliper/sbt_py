@@ -5,7 +5,6 @@ from os import path
 import sys
 
 ### define args
-
 parser = argparse.ArgumentParser(
         description = "Parses .csv files to create .sbt files for table2asn sequence record generation") 
 
@@ -31,7 +30,7 @@ name_frame = """        {
           name name {
             last "last_name",
             first "first_name",
-            middle "",
+            middle "middle_name",
             initials "",
             suffix "",
             title ""            
@@ -39,8 +38,7 @@ name_frame = """        {
         },
 """
 
-afil_frame = """      affil std {
-        affil "afil_dept",
+afil_frame = """      affil std { affil "afil_dept",
         div "afil_div",
         city "afil_city",
         sub "afil_sub",
@@ -68,13 +66,11 @@ def generate_sbt(csv_loc, name_of_sbt):
     name_of_sbt = name_of_sbt
 
     ### make sure name given is valid
-    
     if len(name_of_sbt) == 0:
         name_of_sbt = 'generated.sbt'
 
     if '.sbt' not in name_of_sbt: 
         name_of_sbt = name_of_sbt + '.sbt'
-
 
     all_cols = ['authors', 
                'afil_name',
@@ -101,15 +97,23 @@ def generate_sbt(csv_loc, name_of_sbt):
     
     authors_last = []
     authors_first = []
+    authors_middle = []
 
     num_of_sbts = 0
 
-    # for row in sbt_info.itertuples():
     for row in sbt_info.to_dict('records'):
         try: 
-
-            [authors_last.append(last.split(' ')[1]) for last in row['authors'].split(', ')]
-            [authors_first.append(first.split(' ')[0]) for first in row['authors'].split(', ')]
+            ### if author entry has middle name:
+            for author in row['authors'].split(', '):
+                if len(author.split(' ')) == 3:
+                    authors_middle.append(author.split(' ')[1])
+                    authors_last.append(author.split(' ')[2])
+                    authors_first.append(author.split(' ')[0])
+                ### if no middle name then just use space
+                else:
+                    authors_middle.append(' ')
+                    authors_last.append(author.split(' ')[1])
+                    authors_first.append(author.split(' ')[0])
 
         except IndexError:
             print("ERROR: Author in 'authors' column is missing surname/middlename. Verify data and run again.")
@@ -127,7 +131,6 @@ def generate_sbt(csv_loc, name_of_sbt):
             sys.exit(0)
 
         ### generate dynamic filenames for more than 1 sbt
-
         filename = name_of_sbt
 
         if num_of_sbts != 0:
@@ -135,10 +138,8 @@ def generate_sbt(csv_loc, name_of_sbt):
 
         num_of_sbts += 1
 
-
         ### check if sbt with matching filename has already been generated. 
         ### prompt user if they want to overwrite
-
         if not path.exists(filename):
 
             copy('template.sbt', filename)
@@ -158,14 +159,14 @@ def generate_sbt(csv_loc, name_of_sbt):
 
         # generate a copy of the template .sbt
         # populate it with author names, and corresponding author affiliation/contact info
-
         num_blocks = 0
         with open(filename, 'r+') as sbt:
             content = sbt.readlines() 
 
-        for last, first in zip(authors_last, authors_first):
+        for last, middle, first in zip(authors_last, authors_middle, authors_first):
             block_to_insert = name_frame.replace("last_name", last)
             block_to_insert = block_to_insert.replace("first_name", first)
+            block_to_insert = block_to_insert.replace("middle_name", middle)
 
             ### if not last: replace 
             ###     }
@@ -185,8 +186,13 @@ def generate_sbt(csv_loc, name_of_sbt):
 
         try:
 
-            content[4] = content[4].replace("afil_last", row['afil_name'].split(' ')[1])
-            content[5] = content[5].replace("afil_first", row['afil_name'].split(' ')[0])
+            if len(row['afil_name'].split(' ')) == 3:
+                content[4] = content[4].replace("afil_last", row['afil_name'].split(' ')[2])
+                content[5] = content[5].replace("afil_first", row['afil_name'].split(' ')[0])
+                content[6] = content[6].replace("afil_middle", row['afil_name'].split(' ')[1])
+            else:
+                content[4] = content[4].replace("afil_last", row['afil_name'].split(' ')[1])
+                content[5] = content[5].replace("afil_first", row['afil_name'].split(' ')[0])
 
         except IndexError:
             print("ERROR: Affiliated author is missing name/surname. Reenter data and run again.")
