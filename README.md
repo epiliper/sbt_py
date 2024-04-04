@@ -39,6 +39,6 @@ Note separating each name by comma.
 
 ### To run 
 
-`python3 sbt_gen.py <name of .csv file> <name of sbt to be generated>`
+`python3 sbt_gen.py <name of .csv file>`
 
 
