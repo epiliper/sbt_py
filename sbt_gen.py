@@ -169,6 +169,8 @@ def generate_sbt(csv_loc, name_of_sbt):
         # generate a copy of the template .sbt
         # populate it with author names, and corresponding author affiliation/contact info
         num_blocks = 0
+        num_authors = len(authors_last)
+
         with open(filename, 'r+') as sbt:
             content = sbt.readlines() 
 
@@ -183,7 +185,7 @@ def generate_sbt(csv_loc, name_of_sbt):
             ### with            
             ###     }
             ### }, 
-            if num_blocks == 0:
+            if num_blocks == num_authors - 1:
 
                 block_to_insert = block_to_insert.replace("},", "}")
 
