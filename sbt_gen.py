@@ -12,11 +12,6 @@ parser.add_argument(
         'csv_loc',
         help = 'location of metadata.csv for .sqn generation'
         )
-
-parser.add_argument( 'name_of_sbt',
-        help = 'name of .sbt to be generated'
-        )
-
 try: 
     args = parser.parse_args()
 except BaseException:
@@ -59,17 +54,11 @@ comment_frame = """Seqdesc ::= user {
 }
 """
 
-def generate_sbt(csv_loc, name_of_sbt):
+def generate_sbt(csv_loc):
 
     df = pd.read_csv(path.abspath(csv_loc))
-    name_of_sbt = name_of_sbt
 
     ### make sure name given is valid
-    if len(name_of_sbt) == 0:
-        name_of_sbt = 'generated.sbt'
-
-    if '.sbt' not in name_of_sbt: 
-        name_of_sbt = name_of_sbt + '.sbt'
 
     all_cols = ['authors', 
                'afil_name',
@@ -82,7 +71,8 @@ def generate_sbt(csv_loc, name_of_sbt):
                'afil_email',
                'afil_postcode',
                'alt_comment1',
-               'alt_comment2']
+               'alt_comment2',
+               'filename']
 
     afil_cols = all_cols[2:]
 
@@ -98,6 +88,13 @@ def generate_sbt(csv_loc, name_of_sbt):
     num_of_sbts = 0
 
     for row in sbt_info.to_dict('records'):
+
+        filename = row['filename']
+        if len(filename) == 0:
+            filename = 'generated.sbt'
+
+        if '.sbt' not in filename: 
+            filename = filename + '.sbt'
 
         authors_last = []
         authors_first = []
@@ -139,12 +136,6 @@ def generate_sbt(csv_loc, name_of_sbt):
             print(f"ERROR: missing data in required column: {col}. Enter placeholder value and run again.")
             sys.exit(0)
 
-        ### generate dynamic filenames for more than 1 sbt
-        filename = name_of_sbt
-
-        if num_of_sbts != 0:
-            filename = name_of_sbt.split('.sbt')[0] + str(num_of_sbts) + '.sbt'
-
         num_of_sbts += 1
 
         ### check if sbt with matching filename has already been generated. 
@@ -179,12 +170,6 @@ def generate_sbt(csv_loc, name_of_sbt):
             block_to_insert = block_to_insert.replace("first_name", first)
             block_to_insert = block_to_insert.replace("middle_name", middle)
 
-            ### if not last: replace 
-            ###     }
-            ### } 
-            ### with            
-            ###     }
-            ### }, 
             if num_blocks == num_authors - 1:
 
                 block_to_insert = block_to_insert.replace("},", "}")
@@ -221,5 +206,5 @@ def generate_sbt(csv_loc, name_of_sbt):
                 alt2_populated = comment_frame.replace('_alt_comment_', row['alt_comment2'])
                 sbt.write(alt2_populated)
 
-generate_sbt(args.csv_loc, args.name_of_sbt)
+generate_sbt(args.csv_loc)
 
